@@ -1,0 +1,20 @@
+[package]
+name = "fruit-star-storage"
+description = "FRUIT STAR 3D 저장: SQLite 로컬 기록과 통계"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+fruit-star-core = { workspace = true }
+fruit-star-game = { workspace = true }
+rusqlite = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+rusqlite = { workspace = true }
+
+[lints]
+workspace = true

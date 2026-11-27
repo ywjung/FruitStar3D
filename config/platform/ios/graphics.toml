@@ -1,0 +1,22 @@
+# iPhone용 그래픽 설정. iOS 빌드는 config/graphics.toml 대신 이 파일을 읽는다.
+# 휴대폰 GPU와 배터리를 고려해 무거운 후처리(블룸, 주변광 차폐, 모션 블러)를 끄고 60 FPS로 제한한다.
+# 블룸: iPhone 18 Pro 실측(11월 27일)에서 켜면 평균 47.6~51.8 FPS, 끄면 59.9 FPS였다.
+
+[render]
+backend = "metal"
+quality = "medium"          # 릴 띠 텍스처 512px, 그림자 2048
+target_fps = 60
+bloom = false
+shadows = true
+ambient_occlusion = false
+motion_blur = false
+render_scale = 1.0
+max_medals = 30
+
+[led]
+brightness = 1.0
+reduce_flashing = false
+
+[camera]
+transition_ms = 500
+fov_degrees = 32.0

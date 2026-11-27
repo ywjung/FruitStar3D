@@ -1,0 +1,21 @@
+[package]
+name = "fruit-star-physics"
+description = "FRUIT STAR 3D 물리: 메달 낙하와 충돌"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+fruit-star-core = { workspace = true }
+fruit-star-config = { workspace = true }
+fruit-star-machine = { workspace = true }
+bevy = { workspace = true }
+bevy_rapier3d = { workspace = true }
+
+[dev-dependencies]
+fruit-star-config = { workspace = true }
+
+[lints]
+workspace = true

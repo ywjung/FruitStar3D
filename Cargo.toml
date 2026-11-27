@@ -1,0 +1,61 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.1"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+# 내부 크레이트
+fruit-star-core = { path = "crates/fruit-star-core" }
+fruit-star-game = { path = "crates/fruit-star-game" }
+fruit-star-config = { path = "crates/fruit-star-config" }
+fruit-star-storage = { path = "crates/fruit-star-storage" }
+fruit-star-machine = { path = "crates/fruit-star-machine" }
+fruit-star-render = { path = "crates/fruit-star-render" }
+fruit-star-input = { path = "crates/fruit-star-input" }
+fruit-star-audio = { path = "crates/fruit-star-audio" }
+fruit-star-physics = { path = "crates/fruit-star-physics" }
+fruit-star-ui = { path = "crates/fruit-star-ui" }
+
+# 외부 크레이트 (호환성 검증 후 Cargo.lock으로 고정)
+bevy = { version = "0.20.1", default-features = false, features = [
+    "3d",
+    "ui",
+    "bevy_audio",
+    "wav",
+    "system_font_discovery",
+    "complex_script_segmentation",
+] }
+bevy_rapier3d = { version = "0.37.0", default-features = false, features = ["dim3", "async-collider", "debug-render-3d"] }
+rand = "0.10"
+rusqlite = { version = "0.43", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+toml = "1.2"
+thiserror = "2"
+criterion = "0.8"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"
+type_complexity = "allow"
+too_many_arguments = "allow"
+
+# 개발 빌드: 자체 코드는 빠른 컴파일, 의존성은 최적화하여 실행 성능 확보
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

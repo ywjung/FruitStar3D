@@ -1,0 +1,20 @@
+# 그래픽 설정
+
+[render]
+backend = "metal"           # macOS 빌드는 metal만 지원
+quality = "high"            # low | medium | high | ultra
+target_fps = 120            # 30 ~ 240, 이 값을 넘지 않도록 제한
+bloom = true
+shadows = true
+ambient_occlusion = true
+motion_blur = true
+render_scale = 1.0          # 0.25 ~ 2.0
+max_medals = 60             # 동시에 화면에 남는 메달 수 상한
+
+[led]
+brightness = 1.0            # 0 ~ 1.5
+reduce_flashing = false     # true면 점멸 연출을 완만하게 바꾼다
+
+[camera]
+transition_ms = 500
+fov_degrees = 32.0

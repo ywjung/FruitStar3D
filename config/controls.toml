@@ -1,0 +1,22 @@
+# 조작 설정
+# 키 이름은 W3C KeyboardEvent.code 표기를 따른다 (예: KeyA, Digit1, Space, Escape, F3).
+# 한 키를 두 동작에 배정할 수 없다.
+
+[keys]
+bet = ["KeyB"]                      # MAX BET (최대 베팅까지 한 번에)
+bet_one = ["KeyN"]                  # 1 BET (메달 한 장씩)
+lever = ["Space"]                   # START 레버
+stop_left = ["Digit1", "KeyA"]
+stop_center = ["Digit2", "KeyS"]
+stop_right = ["Digit3", "KeyD"]
+insert_medal = ["KeyC"]             # 가상 메달 추가
+camera = ["KeyV"]                   # 카메라 변경
+fullscreen = ["KeyF"]
+mute = ["KeyM"]
+pause = ["KeyP"]
+menu = ["Escape"]
+debug = ["F3"]                      # 디버그 콘솔 (개발 빌드 전용)
+
+[mouse]
+orbit_sensitivity = 0.005           # 드래그 1픽셀당 회전량 (라디안)
+zoom_sensitivity = 0.08             # 스크롤·핀치 한 단위당 확대 비율

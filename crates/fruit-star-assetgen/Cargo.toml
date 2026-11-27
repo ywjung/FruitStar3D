@@ -1,0 +1,22 @@
+[package]
+name = "fruit-star-assetgen"
+description = "FRUIT STAR 3D 에셋 생성기: 모든 2D 아트와 효과음을 코드로 절차 생성 (독자적 원본)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "fruit-star-assetgen"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.105"
+png = "0.18.1"
+# Text rendering (and therefore any system-font access) is deliberately disabled:
+# all lettering comes from the tool's own stroke font in `src/font.rs`.
+resvg = { version = "0.50.0", default-features = false }
+
+[lints]
+workspace = true

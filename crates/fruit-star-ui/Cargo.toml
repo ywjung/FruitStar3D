@@ -1,0 +1,18 @@
+[package]
+name = "fruit-star-ui"
+description = "FRUIT STAR 3D UI: 메뉴, HUD, 다국어"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+fruit-star-core = { workspace = true }
+fruit-star-game = { workspace = true }
+fruit-star-config = { workspace = true }
+fruit-star-machine = { workspace = true }
+bevy = { workspace = true }
+
+[lints]
+workspace = true

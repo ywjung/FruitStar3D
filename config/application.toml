@@ -1,0 +1,17 @@
+# FRUIT STAR 3D 애플리케이션 설정
+# 이 파일의 키는 애플리케이션 자체 스키마이다 (Bevy API가 아니다).
+
+[window]
+title = "FRUIT STAR 3D"
+width = 1920          # 논리 픽셀, 640 ~ 7680
+height = 1080         # 논리 픽셀, 360 ~ 4320
+fullscreen = false
+vsync = true
+
+[game]
+machine = "fruit_classic"   # config/machines/<id>.toml
+language = "ko"             # ko | ja | en
+mode = "classic"            # classic | free_play | practice
+initial_credit = 50         # Classic 모드 첫 실행 시 가상 메달
+credit_limit = 9999         # 투입으로 도달 가능한 최대 크레딧
+medals_per_insert = 50      # 메달 추가 입력 한 번에 투입되는 가상 메달 수

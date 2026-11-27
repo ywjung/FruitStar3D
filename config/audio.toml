@@ -1,0 +1,7 @@
+# 음향 설정 (모든 음량은 0 ~ 1)
+
+master = 0.8
+effects = 0.9
+ambient = 0.35
+muted = false
+spatial = true              # 릴·버튼 위치 기반 공간 음향

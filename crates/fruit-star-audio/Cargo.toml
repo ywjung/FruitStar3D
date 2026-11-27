@@ -1,0 +1,17 @@
+[package]
+name = "fruit-star-audio"
+description = "FRUIT STAR 3D 음향: 기계음과 공간 음향"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+fruit-star-game = { workspace = true }
+fruit-star-config = { workspace = true }
+fruit-star-machine = { workspace = true }
+bevy = { workspace = true }
+
+[lints]
+workspace = true

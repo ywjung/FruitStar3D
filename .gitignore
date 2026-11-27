@@ -1,0 +1,10 @@
+/target
+/dist
+.DS_Store
+*.sqlite-journal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.mobileprovision
+*.p12
+.env*

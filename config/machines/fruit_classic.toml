@@ -1,0 +1,83 @@
+# FRUIT CLASSIC 기종 정의
+#
+# 추첨 확률과 배당은 이 프로젝트가 독자적으로 정한 값이며 실제 기기와 무관하다.
+# 메달은 가상이며 금전적 가치가 없다.
+#
+# 릴 배열을 바꾼 뒤에는 다음 명령으로 릴 제어 보장 조건을 검증한다.
+#   cargo run --release -p fruit-star-game --example strip_search
+
+id = "fruit_classic"
+name = "FRUIT CLASSIC"
+
+[reel]
+count = 3
+symbol_count = 21
+visible_rows = 3
+spin_rpm = 80.0             # 정속 회전 속도 (분당 회전수)
+acceleration_ms = 350
+deceleration_ms = 250
+settling_ms = 80            # 정지 진동
+max_slip = 4                # 정지 버튼을 누른 위치에서 미끄러질 수 있는 최대 칸 수
+
+# 인덱스가 커질수록 릴 표면의 위쪽이다.
+# 포도와 리플레이는 어디서 눌러도 끌어들일 수 있도록 5칸 이내 간격으로 배치한다.
+[reel.strips]
+left = [
+    "grape", "blue_seven", "replay", "bar", "grape", "bell", "replay",
+    "red_seven", "grape", "melon", "replay", "star", "grape", "star",
+    "replay", "cherry", "bell", "grape", "melon", "replay", "cherry",
+]
+center = [
+    "star", "grape", "red_seven", "replay", "cherry", "grape", "melon",
+    "replay", "blue_seven", "grape", "bell", "replay", "bar", "grape",
+    "cherry", "replay", "melon", "star", "grape", "bell", "replay",
+]
+right = [
+    "replay", "melon", "grape", "bar", "replay", "melon", "grape",
+    "cherry", "replay", "blue_seven", "grape", "star", "replay", "red_seven",
+    "bell", "grape", "star", "replay", "bell", "grape", "cherry",
+]
+
+[rules]
+bet = 3                     # 최대 베팅 (MAX BET). 1 BET 버튼으로 1메달씩 걸 수도 있다
+max_payout = 15             # 한 게임의 최대 지급
+
+# 유효 라인에 같은 심볼 세 개가 늘어서면 성립한다. 유효 라인 수는 베팅 수에 따른다:
+# 1메달 = 가운데 1줄, 2메달 = 가로 3줄, 3메달 = 가로 3줄 + 대각선 2줄.
+# 당첨 확률은 베팅 수에 비례한다 (아래 가중치는 3메달 기준).
+# replay는 지급 없이 다음 게임이 무료, big_red/big_blue/regular_bar는 보너스를 시작한다.
+[payouts]
+grape = 8
+cherry = 4
+bell = 10
+melon = 12
+star = 15
+
+# 65536분의 가중치. 합계의 나머지는 꽝이다.
+[lottery.normal]
+replay = 8978
+grape = 11200
+cherry = 1820
+bell = 655
+melon = 546
+star = 164
+big = 280                   # 빨간 7 또는 파란 7
+regular = 172               # BAR
+
+[lottery.bonus]
+grape = 60000
+
+[bonus]
+big_payout_cap = 240        # 누적 지급이 이 값에 이르면 종료
+regular_payout_cap = 96
+lamp_lead_percent = 25      # 보너스 당첨 게임 중 레버를 당길 때 STAR CHANCE가 켜지는 비율(%). 나머지는 릴이 멈춘 뒤
+
+[flow]
+result_hold_ms = 250
+payout_interval_ms = 70
+
+[animation]
+lever_ms = 250
+stop_button_ms = 120
+bet_button_ms = 100
+medal_insert_ms = 400

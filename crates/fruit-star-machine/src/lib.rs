@@ -24,6 +24,6 @@ pub use messages::{
 };
 pub use plugin::{MachinePlugin, MachineSet};
 pub use state::{
-    AppState, DebugLevel, FailureMessage, Machine, MainCamera, OffscreenTarget, Paused, Settings,
-    TouchUi, ViewMode, overall_state,
+    AppState, DebugLevel, FailureMessage, HudInsets, Machine, MainCamera, OffscreenTarget, Paused,
+    Settings, TouchUi, ViewMode, overall_state,
 };

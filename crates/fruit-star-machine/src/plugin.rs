@@ -39,6 +39,7 @@ impl Plugin for MachinePlugin {
             .init_resource::<FailureMessage>()
             .init_resource::<DebugLevel>()
             .init_resource::<crate::state::TouchUi>()
+            .init_resource::<crate::state::HudInsets>()
             .init_resource::<DisplayValues>()
             .init_resource::<DataCounter>()
             .init_resource::<PayoutCounter>()

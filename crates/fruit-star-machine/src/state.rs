@@ -69,6 +69,15 @@ impl Default for TouchUi {
     }
 }
 
+/// 화면 UI가 위·아래를 불투명하게 덮는 비율 (화면 높이에 대한 0 ~ 1). 휴대폰 플레이 화면의
+/// 상단 표시줄과 하단 조작판이 여기에 해당한다. 카메라는 게임기가 그 사이 빈 곳에 오도록 화면을
+/// 위아래로 옮긴다. 덮는 것이 없으면 둘 다 0이다.
+#[derive(Resource, Debug, Clone, Copy, Default, PartialEq)]
+pub struct HudInsets {
+    pub top: f32,
+    pub bottom: f32,
+}
+
 /// 게임기를 비추는 주 카메라.
 #[derive(Component, Debug, Clone, Copy, Default)]
 pub struct MainCamera;

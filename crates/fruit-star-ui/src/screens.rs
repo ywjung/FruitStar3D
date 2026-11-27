@@ -1,7 +1,7 @@
 //! 화면 구성. 메뉴와 설정은 캐비닛의 인쇄 패널, HUD는 조작부의 계기판을 따른다.
 
 mod hud;
-pub(crate) use hud::key_names;
+pub(crate) use hud::{HudDeck, HudHeader, key_names};
 
 use bevy::prelude::*;
 use fruit_star_game::PlayMode;

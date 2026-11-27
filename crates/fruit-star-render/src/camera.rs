@@ -12,7 +12,7 @@ use bevy::post_process::motion_blur::MotionBlur;
 use bevy::prelude::*;
 use fruit_star_machine::layout::{REEL_AXIS_Z, REEL_CENTER_Y, REEL_RADIUS};
 use fruit_star_machine::{
-    AppCommand, AppState, CameraControl, MainCamera, OffscreenTarget, Settings, ViewMode,
+    AppCommand, AppState, CameraControl, HudInsets, MainCamera, OffscreenTarget, Settings, ViewMode,
 };
 
 use crate::lighting::EnvironmentMap;
@@ -72,13 +72,16 @@ const FRONT_TARGET: Vec3 = Vec3::new(0.0, 0.900, 0.10);
 /// 플레이 시점의 주시점: 조작부 선반부터 간판까지가 화면에 들어오고,
 /// 정지 버튼이 화면 아래쪽 안내 문구에 가리지 않는 높이.
 const PLAY_TARGET: Vec3 = Vec3::new(0.0, 0.960, 0.14);
+/// 세로 화면(휴대폰)의 플레이 시점 주시점. 세로로 더 보이는 만큼 위로 올려, 상단 표시줄 바로 아래에
+/// 게임기 위쪽 계수기(REG·TOTAL)가 들어오고 하단 조작판 위에 정지 버튼이 남게 한다.
+const PORTRAIT_PLAY_TARGET: Vec3 = Vec3::new(0.0, 1.02, 0.14);
 const REEL_TARGET: Vec3 = Vec3::new(0.0, REEL_CENTER_Y - 0.01, REEL_AXIS_Z + REEL_RADIUS);
 const GALLERY_POSE: OrbitPose = OrbitPose::new(Vec3::new(0.0, 0.90, 0.05), 0.0, 0.10, 2.20);
 // 메뉴의 왼쪽 인쇄 패널 옆에 캐비닛을 전시한다. 갤러리에서는 다시 중앙에 둔다.
 const MENU_POSE: OrbitPose = OrbitPose::new(Vec3::new(-0.34, 0.88, 0.05), 0.30, 0.10, 2.30);
 
-/// 보기 방식별 카메라 프리셋. V 키로 순환한다.
-pub fn presets(view: ViewMode) -> &'static [OrbitPose] {
+/// 보기 방식별 카메라 프리셋. V 키로 순환한다. `portrait`면 세로 화면용 플레이 시점을 쓴다.
+pub fn presets(view: ViewMode, portrait: bool) -> &'static [OrbitPose] {
     const PLAY: [OrbitPose; 5] = [
         // 기본: 릴과 조작부가 화면을 채우는 플레이 시점
         OrbitPose::new(PLAY_TARGET, 0.0, 0.10, 1.14),
@@ -88,6 +91,13 @@ pub fn presets(view: ViewMode) -> &'static [OrbitPose] {
         OrbitPose::new(FRONT_TARGET, 0.55, 0.13, 2.10),
         // 릴 확대
         OrbitPose::new(REEL_TARGET, 0.0, 0.02, 0.62),
+    ];
+    const PLAY_PORTRAIT: [OrbitPose; 5] = [
+        OrbitPose::new(PORTRAIT_PLAY_TARGET, 0.0, 0.10, 1.14),
+        PLAY[1],
+        PLAY[2],
+        PLAY[3],
+        PLAY[4],
     ];
     const MECHANICAL: [OrbitPose; 4] = [
         OrbitPose::new(Vec3::new(0.0, 0.88, 0.0), 0.62, 0.30, 1.50),
@@ -101,6 +111,7 @@ pub fn presets(view: ViewMode) -> &'static [OrbitPose] {
         OrbitPose::new(FRONT_TARGET, 0.9, 0.2, 1.7),
     ];
     match view {
+        ViewMode::Play if portrait => &PLAY_PORTRAIT,
         ViewMode::Play => &PLAY,
         ViewMode::Mechanical => &MECHANICAL,
         ViewMode::Gallery => &GALLERY,
@@ -120,6 +131,8 @@ pub struct CameraRig {
     /// 자동으로 천천히 도는 중인지 여부 (메뉴·갤러리).
     auto_orbit: bool,
     auto_phase: f32,
+    /// 지금 적용 중인 화면 위아래 이동량 (`band_shift`, 부드럽게 따라간다).
+    shift: f32,
 }
 
 impl Default for CameraRig {
@@ -133,6 +146,7 @@ impl Default for CameraRig {
             preset: 0,
             auto_orbit: true,
             auto_phase: 0.0,
+            shift: 0.0,
         }
     }
 }
@@ -246,6 +260,28 @@ pub fn fit_to_aspect(pose: OrbitPose, aspect: f32, fov_y: f32) -> OrbitPose {
     fitted.clamped()
 }
 
+/// UI가 덮지 않은 띠의 가운데로 주시점을 옮기기 위한 이동량 (화면 높이에 대한 비율).
+///
+/// 위가 더 많이 덮이면 띠의 가운데가 화면 가운데보다 아래에 있으므로 양수(카메라를 위로 옮겨
+/// 장면이 아래로 내려가 보이게)가 된다.
+pub fn band_shift(insets: HudInsets) -> f32 {
+    let top = insets.top.clamp(0.0, 0.9);
+    let bottom = insets.bottom.clamp(0.0, 0.9);
+    (top - bottom) / 2.0
+}
+
+/// 자세의 변환을 화면 위아래 방향으로 `shift`(화면 높이에 대한 비율)만큼 평행 이동한다.
+/// 방향은 그대로라서 회전·확대 조작과 섞여도 주시점이 화면에서 같은 자리에 머문다.
+pub fn panned_transform(pose: &OrbitPose, shift: f32, fov_y: f32) -> Transform {
+    let base = pose.transform();
+    let visible_height = 2.0 * pose.distance * (fov_y / 2.0).tan();
+    let up = base.up();
+    Transform {
+        translation: base.translation + *up * (shift * visible_height),
+        ..base
+    }
+}
+
 /// 주 카메라의 가로세로 비. 아직 크기가 정해지지 않았으면 `None`.
 fn camera_aspect(camera: &Camera) -> Option<f32> {
     let size = camera.logical_viewport_size()?;
@@ -267,13 +303,15 @@ pub(crate) fn follow_view_mode(
     let in_game = *state.get() == AppState::InGame;
     rig.preset = 0;
     rig.auto_orbit = !in_game || *view == ViewMode::Gallery;
+    let aspect = camera_aspect(&camera);
+    let portrait = aspect.is_some_and(|aspect| aspect < 1.0);
     let target = if in_game {
-        presets(*view)[0]
+        presets(*view, portrait)[0]
     } else {
         MENU_POSE
     };
     let fov = settings.config.graphics.camera.fov_degrees.to_radians();
-    let target = camera_aspect(&camera).map_or(target, |aspect| fit_to_aspect(target, aspect, fov));
+    let target = aspect.map_or(target, |aspect| fit_to_aspect(target, aspect, fov));
     rig.transition_to(target, duration);
 }
 
@@ -282,6 +320,7 @@ pub(crate) fn control_camera(
     state: Res<State<AppState>>,
     view: Res<ViewMode>,
     settings: Res<Settings>,
+    insets: Res<HudInsets>,
     mut commands: MessageReader<AppCommand>,
     mut controls: MessageReader<CameraControl>,
     mut rig: ResMut<CameraRig>,
@@ -292,7 +331,7 @@ pub(crate) fn control_camera(
     let aspect = camera_aspect(camera.1);
     for command in commands.read() {
         if *command == AppCommand::CycleCamera && in_game {
-            let list = presets(*view);
+            let list = presets(*view, aspect.is_some_and(|aspect| aspect < 1.0));
             rig.preset = (rig.preset + 1) % list.len();
             let duration = settings.config.graphics.camera.transition_ms as f32 / 1000.0;
             rig.auto_orbit = *view == ViewMode::Gallery && rig.preset == 0;
@@ -318,7 +357,12 @@ pub(crate) fn control_camera(
         rig.elapsed = rig.duration;
     }
     rig.advance(time.delta_secs());
-    *camera.0 = rig.pose.transform();
+    // 휴대폰의 상단 표시줄·하단 조작판 사이 빈 곳에 게임기가 오게 한다. 표시줄이 생기거나 높이가
+    // 바뀔 때 화면이 튀지 않도록 0.1초 남짓에 걸쳐 따라간다.
+    let wanted = if in_game { band_shift(*insets) } else { 0.0 };
+    let follow = 1.0 - (-time.delta_secs() * 12.0).exp();
+    rig.shift += (wanted - rig.shift) * follow;
+    *camera.0 = panned_transform(&rig.pose, rig.shift, fov);
 }
 
 #[cfg(test)]
@@ -353,6 +397,30 @@ mod tests {
                     }
                 }
             }
+        }
+    }
+
+    #[test]
+    fn panned_target_lands_in_the_middle_of_the_uncovered_band() {
+        let fov = 32f32.to_radians();
+        let pose = OrbitPose::new(Vec3::new(0.0, 0.96, 0.14), 0.2, 0.1, 1.9);
+        for (top, bottom) in [(0.13, 0.18), (0.25, 0.05), (0.0, 0.0)] {
+            let insets = HudInsets { top, bottom };
+            let transform = panned_transform(&pose, band_shift(insets), fov);
+            // 주시점을 카메라 좌표로 옮겨 화면 세로 위치(NDC, 위가 +1)를 구한다
+            let local = transform
+                .to_matrix()
+                .inverse()
+                .transform_point3(pose.target);
+            let ndc_y = local.y / (-local.z * (fov / 2.0).tan());
+            // 띠의 가운데: 위에서 top + (1 - top - bottom) / 2 지점
+            let band_center = 1.0 - 2.0 * (top + (1.0 - top - bottom) / 2.0);
+            assert!(
+                (ndc_y - band_center).abs() < 1e-4,
+                "{top}/{bottom}: {ndc_y} vs {band_center}"
+            );
+            // 방향은 바뀌지 않는다
+            assert_eq!(transform.rotation, pose.transform().rotation);
         }
     }
 

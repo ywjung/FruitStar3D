@@ -42,6 +42,8 @@ fn keys_used_by_the_ui_exist() {
         "view.mechanical",
         "view.gallery",
         "hud.credit",
+        "touch.view",
+        "touch.pause",
         "hud.payout",
         "hud.bet",
         "hud.bonus_left",

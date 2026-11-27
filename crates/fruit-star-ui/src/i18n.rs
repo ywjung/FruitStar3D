@@ -179,6 +179,8 @@ const TABLE: &[(&str, [&str; 3])] = &[
     ("touch.max_bet", ["MAX BET", "MAX BET", "MAX BET"]),
     ("touch.start", ["START", "START", "START"]),
     ("touch.stop", ["STOP", "STOP", "STOP"]),
+    ("touch.view", ["시점", "視点", "VIEW"]),
+    ("touch.pause", ["일시정지", "一時停止", "PAUSE"]),
     ("hud.win", ["당첨!", "当たり!", "wins!"]),
     ("role.big_red", ["빨간 7", "赤7", "Red 7"]),
     ("role.big_blue", ["파란 7", "青7", "Blue 7"]),

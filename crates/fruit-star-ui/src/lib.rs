@@ -15,8 +15,8 @@ use bevy::ui_widgets::Activate;
 use fruit_star_config::Language;
 use fruit_star_game::{BonusKind, Flag, Phase, PlayMode};
 use fruit_star_machine::{
-    AppCommand, AppState, DebugLevel, DisplayValues, FailureMessage, Lamp, LampKind, Machine,
-    MachineCommand, MachineSet, MainCamera, Notice, Paused, SessionCommand, Settings,
+    AppCommand, AppState, DebugLevel, DisplayValues, FailureMessage, HudInsets, Lamp, LampKind,
+    Machine, MachineCommand, MachineSet, MainCamera, Notice, Paused, SessionCommand, Settings,
     StatsSnapshot, TouchUi, UiClick, ViewMode, overall_state,
 };
 
@@ -50,6 +50,7 @@ impl Plugin for UiPlugin {
                     localize,
                     update_dynamic,
                     widgets::style_buttons,
+                    publish_hud_insets,
                 )
                     .chain()
                     .in_set(MachineSet::Present),
@@ -296,6 +297,44 @@ fn fit_interface(
     }
 }
 
+/// 휴대폰 플레이 화면의 상단 표시줄·하단 조작판이 실제로 덮는 높이를 카메라에 알린다.
+///
+/// 배치가 끝난 실제 크기(직전 프레임)를 재므로 글꼴·배율·안전 영역이 바뀌어도 맞는다.
+/// 일시정지 화면처럼 계기판 전체가 숨으면 크기가 0이 되는데, 그때는 직전 값을 두어 화면이 튀지 않게 한다.
+fn publish_hud_insets(
+    state: Res<State<AppState>>,
+    camera: Single<&Camera, With<MainCamera>>,
+    header: Query<&ComputedNode, With<screens::HudHeader>>,
+    deck: Query<&ComputedNode, With<screens::HudDeck>>,
+    mut insets: ResMut<HudInsets>,
+) {
+    let next = if *state.get() == AppState::InGame {
+        let Some(height) = camera
+            .physical_viewport_size()
+            .map(|size| size.y as f32)
+            .filter(|height| *height > 0.0)
+        else {
+            return;
+        };
+        let covered = |nodes: &mut dyn Iterator<Item = &ComputedNode>| -> f32 {
+            nodes.map(|node| node.size().y).fold(0.0, f32::max) / height
+        };
+        let next = HudInsets {
+            top: covered(&mut header.iter()),
+            bottom: covered(&mut deck.iter()),
+        };
+        if next.top <= 0.0 && next.bottom <= 0.0 {
+            return;
+        }
+        next
+    } else {
+        HudInsets::default()
+    };
+    if *insets != next {
+        *insets = next;
+    }
+}
+
 fn show_groups(
     panels: Res<Panels>,
     view: Res<ViewMode>,
@@ -398,6 +437,7 @@ fn update_dynamic(
     diagnostics: Res<DiagnosticsStore>,
     lamps: Query<&Lamp>,
     panels: Res<Panels>,
+    touch: Res<TouchUi>,
     mut texts: Query<(&Dynamic, &mut Text, &mut Node)>,
 ) {
     let config = &settings.config;
@@ -433,11 +473,16 @@ fn update_dynamic(
                     && !machine.mode().auto_refill()
                     && machine.credit() == 0
                 {
-                    format!(
-                        "{}   [{}]",
-                        t("hud.need_medals"),
-                        screens::key_names(&config.controls.keys.insert_medal)
-                    )
+                    if touch.0 {
+                        // 터치 화면에는 키보드가 없다. 아래 조작판의 메달 버튼을 누르면 된다.
+                        t("hud.need_medals")
+                    } else {
+                        format!(
+                            "{}   [{}]",
+                            t("hud.need_medals"),
+                            screens::key_names(&config.controls.keys.insert_medal)
+                        )
+                    }
                 } else {
                     String::new()
                 }

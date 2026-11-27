@@ -15,6 +15,10 @@ pub const RED: Color = Color::srgb_u8(156, 39, 52);
 pub const GOLD: Color = Color::srgb_u8(255, 205, 112);
 pub const METAL: Color = Color::srgb_u8(43, 40, 43);
 pub const LIGHT: Color = Color::srgb_u8(251, 242, 224);
+/// 휴대폰 플레이 화면의 상단 표시줄·하단 조작판 바탕.
+pub const PANEL: Color = Color::srgb_u8(27, 23, 26);
+/// PANEL 위의 작은 글씨.
+pub const DIM: Color = Color::srgb_u8(196, 180, 160);
 
 pub fn column(gap: f32) -> Node {
     Node {
@@ -99,6 +103,11 @@ impl Finish {
             ],
         }
     }
+    /// 버튼 아랫면(두께) 색. 누르면 바탕이 이 색이 되어 눌려 들어간 것처럼 보인다.
+    pub fn edge(self) -> Color {
+        self.colors()[2]
+    }
+
     pub fn ink(self) -> Color {
         match self {
             Self::Enamel | Self::Dark => LIGHT,

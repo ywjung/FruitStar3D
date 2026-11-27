@@ -90,6 +90,9 @@ cat > "$ICONSET/Contents.json" <<'JSON'
   "info": { "author": "xcode", "version": 1 }
 }
 JSON
+# Xcode 26의 actool은 같은 버전의 시뮬레이터 런타임이 없으면 실패한다. ACTOOL_DEVELOPER_DIR로
+# 다른 Xcode의 actool을 쓸 수 있다 (예: 기본 Xcode). 결과물은 MIN_IOS 기준이라 호환된다.
+DEVELOPER_DIR="${ACTOOL_DEVELOPER_DIR:-${DEVELOPER_DIR:-$(xcode-select -p)}}" \
 xcrun actool "$WORK/Assets.xcassets" --compile "$APP" --platform "$SDK" \
     --minimum-deployment-target "$MIN_IOS" --target-device iphone \
     --app-icon AppIcon --output-partial-info-plist "$WORK/icon.plist" >/dev/null

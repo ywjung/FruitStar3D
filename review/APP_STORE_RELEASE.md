@@ -39,14 +39,14 @@ iOS와 macOS를 한 앱 레코드에 넣어 같은 번들 ID로 낸다(유니버
 | 프로파일 "FRUIT STAR 3D iOS App Store", "FRUIT STAR 3D Mac App Store" | 만들어 Xcode로 내려받음 (`~/Library/Developer/Xcode/UserData/Provisioning Profiles/`) |
 | App Store Connect 앱 레코드 (Apple ID 6839970897, SKU fruitstar3d, iOS·macOS, 한국어) | 만듦. 두 플랫폼 1.0 "제출 준비 중" |
 | Mac App Store 패키지 `dist/store/FruitStar3D-macOS.pkg` (1.0, 빌드 1) | 배포 인증서로 서명함. 앱 아이콘을 icns와 에셋 카탈로그(`Assets.car`, `CFBundleIconName`) 둘 다로 넣음. 2026-11-27 20:01 Xcode 계정으로 업로드 성공(`xcodebuild -exportArchive`, destination upload), 처리 완료(약 10분, "제출 준비 완료"). macOS 1.0 버전에 빌드 1을 연결해 저장했고, 앱 목록·버전 화면에 앱 아이콘이 표시됨. 심사 제출은 하지 않음 |
-| iOS `.ipa` | Xcode 26 설치 전이라 만들지 않음. 그래서 App Store Connect의 iOS 1.0에는 빌드와 아이콘이 없음 |
+| iOS `.ipa` `dist/ios-store/FruitStar3D.ipa` (1.0, 빌드 1) | Xcode 26.6(iOS 26.5 SDK)로 빌드, 배포 인증서로 서명. 에셋 카탈로그는 Xcode 26 actool이 시뮬레이터 런타임을 요구해 `ACTOOL_DEVELOPER_DIR`로 Xcode 27의 actool을 씀. 2026-11-27 20:56 `xcodebuild -exportArchive`로 업로드 성공, 처리 완료("제출 준비 완료") |
 | 앱 정보 (2026-11-27 입력) | 부제 "3D 기계식 과일 릴 게임기", 카테고리 게임 › 카지노·시뮬레이션, 콘텐츠 권한 "타사 콘텐츠 없음" |
 | 연령 등급 | 시뮬레이션 도박 "빈번", 나머지 없음/아니요 → 계산 결과 18+ (일부 지역 R 18+). 대한민국은 조건에 따라 GRAC 등급분류번호 필요 |
 | 가격·판매 지역 | 무료 ($0.00). 판매 지역 131개 국가·지역 — 대한민국(GRAC 등급분류번호 필요 가능), 중국 본토(게임 판호 필요), 유럽 42개국(사용자 요청) 제외 |
 | 개인정보 | 처리방침 URL 입력, "데이터를 수집하지 않음" 게시함 (사용자 승인) |
 | iOS·macOS 1.0 버전 문구 | 한국어 홍보 문구·설명·키워드·지원 URL·저작권·심사 메모 입력. macOS 심사 연락처 저장, "로그인 필요" 해제, 스크린샷 3장(2880×1800) Chrome으로 업로드 |
 | **macOS 1.0 심사 제출** | 2026-11-27 20:45 제출. 상태 "심사 대기 중" (최대 48시간, 결과는 계정 이메일로 옴) |
-| iOS 1.0 | 빌드 없음(Xcode 26 필요) — "제출 준비 중"에 머묾 |
+| **iOS 1.0 심사 제출** | 스크린샷 3장(6.3형 1206×2622, `store/screenshots/iphone-6.3/`), 심사 연락처, "로그인 필요" 해제, 빌드 1.0 (1) 연결 후 2026-11-27 21:04 제출. 상태 "심사 대기 중" |
 
 ## 3. 직접 해야 하는 일 (계정·서명·제출)
 
@@ -90,8 +90,9 @@ STORE=1 MARKETING_VERSION=1.0 BUILD_NUMBER=1 SIGN_IDENTITY="Apple Distribution: 
 
 ## 5. 남은 확인
 
-- 실제 배포 인증서로 서명·업로드·TestFlight 설치는 아직 하지 않았다(인증서 없음).
-- iOS 26 SDK 정식 빌드는 Xcode 26이 없어 만들지 못했다. 그 빌드의 실기기 실행 확인이 필요하다.
-- macOS 샌드박스는 ad-hoc 서명으로만 확인했다. 배포 프로파일로 서명한 `.pkg` 설치 확인이 필요하다.
+- 배포 인증서로 서명·업로드는 두 플랫폼 모두 했다. TestFlight 실기기 설치는 하지 않았다.
+- iOS 26.5 SDK 스토어 빌드 자체의 실기기 실행은 확인하지 않았다(같은 코드의 개발 빌드는 iPhone에서 실행 확인).
+- macOS 샌드박스는 ad-hoc 서명으로만 확인했다. 배포 프로파일로 서명한 `.pkg` 설치 확인은 하지 않았다.
+- 대한민국은 GRAC 등급분류 문제로 판매 지역에서 빠져 있다.
 - 실제 빈 셰이더 캐시: 새 번들 ID의 샌드박스 앱 첫 실행에서 렌더 예열이 6,634 ms 걸렸고 이어진 플레이 최대 프레임은
   10.5 ms였다(두 번째 실행 예열 244 ms). 첫 실행의 로딩 화면이 몇 초 길어질 수 있다.

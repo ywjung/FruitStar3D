@@ -140,7 +140,7 @@ START, STOP×3)으로 플레이한다. 게임기 부품을 직접 눌러도 되�
 
 ```bash
 scripts/package-ios.sh            # 시뮬레이터용 → dist/ios-sim/FruitStar3D.app
-xcrun simctl install booted dist/ios-sim/FruitStar3D.app && xcrun simctl launch booted local.fruitstar3d
+xcrun simctl install booted dist/ios-sim/FruitStar3D.app && xcrun simctl launch booted io.github.ywjung.fruitstar3d
 ```
 
 ```bash
@@ -148,14 +148,20 @@ SIGN_IDENTITY="Apple Development: …" PROFILE_PATH=<프로파일.mobileprovisio
 xcrun devicectl device install app --device <UDID> dist/ios-device/FruitStar3D.app
 ```
 
-- 그래픽은 `config/platform/ios/graphics.toml`(중간 품질, 60 FPS, 주변광 차폐·모션 블러 끔)을 쓴다.
+- 그래픽은 `config/platform/ios/graphics.toml`(중간 품질, 60 FPS, 블룸·주변광 차폐·모션 블러 끔)을 쓴다.
 - **임시 조치**: iOS 27 SDK로 빌드한 앱은 UIScene 생명주기를 써야 하지만 Bevy 0.20의 winit 0.30은 아직
-  지원하지 않는다. 스크립트가 실행 파일에 기록된 SDK 버전을 26.0으로 바꿔 실행되게 한다. 개발·개인 설치용이며
-  앱 스토어에는 제출할 수 없다.
+  지원하지 않는다. sim·device 빌드는 실행 파일에 기록된 SDK 버전을 26.0으로 바꿔 실행되게 한다. 개발·개인 설치용이다.
+
+## App Store 출시
+
+iPhone(`scripts/package-ios.sh store`, Xcode 26 필요)과 Mac App Store(`STORE=1 scripts/package.sh`)용 빌드,
+개인정보 매니페스트, 스크린샷, 설명문 초안이 준비되어 있다. 계정·서명·제출 절차와 남은 제약은
+[review/APP_STORE_RELEASE.md](review/APP_STORE_RELEASE.md)에 있다.
 
 ## 라이선스
 
-- 소스 코드: 워크스페이스 `Cargo.toml`의 `license` 항목은 `MIT`다. 저장소에 별도의 LICENSE 파일은 없다.
-- 그림과 효과음: `fruit-star-assetgen`이 생성한 이 프로젝트의 원본이며 제3자 자료를 쓰지 않았다.
+- 소스 코드: MIT 또는 Apache-2.0 중 원하는 쪽을 골라 쓸 수 있다 ([LICENSE-MIT](LICENSE-MIT), [LICENSE-APACHE](LICENSE-APACHE)).
+  기여한 코드도 따로 밝히지 않는 한 같은 이중 라이선스로 제공된다.
+- 그림과 효과음: `fruit-star-assetgen`이 생성한 이 프로젝트의 원본이며 제3자 자료를 쓰지 않았다. 소스 코드와 같은 라이선스를 따른다.
   파일별 내용과 출처는 [assets/ASSET_SOURCES.md](assets/ASSET_SOURCES.md)에 있다.
 - 서드파티 크레이트의 라이선스 목록은 `scripts/package.sh`가 `dist/LICENSES.md`로 만든다.

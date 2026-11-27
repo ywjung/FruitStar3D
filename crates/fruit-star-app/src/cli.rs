@@ -23,8 +23,10 @@ pub struct Options {
     pub exit_after: Option<f32>,
     /// 지정한 초에 카메라를 다음 프리셋으로 넘긴다.
     pub camera_at: Vec<f32>,
-    /// 창 대신 화면 밖 이미지(1920×1080)에 그린다. 스크린샷도 그 이미지에서 저장한다.
+    /// 창 대신 화면 밖 이미지에 그린다. 스크린샷도 그 이미지에서 저장한다.
     pub offscreen: bool,
+    /// 화면 밖 이미지 크기 (기본 1920×1080). 스토어 스크린샷 규격을 맞출 때 쓴다.
+    pub offscreen_size: Option<(u32, u32)>,
     /// 지정한 초에 일시정지를 전환한다.
     pub pause_at: Vec<f32>,
     pub help: bool,
@@ -43,6 +45,7 @@ FRUIT STAR 3D
   --screenshot <초> <파일.png>           지정 시각에 화면 저장 (여러 번 지정 가능)
   --camera-at <초>                       지정 시각에 카메라 전환 (여러 번 지정 가능)
   --offscreen                           창 대신 화면 밖 이미지에 렌더링 (창이 가려져 있어도 스크린샷 가능)
+  --offscreen-size <가로x세로>           화면 밖 이미지 크기 지정 (--offscreen 포함, 기본 1920x1080)
   --pause-at <초>                        지정 시각에 일시정지 전환 (여러 번 지정 가능)
   --exit-after <초>                      지정 시간 뒤 종료
   --help                                이 도움말
@@ -56,6 +59,19 @@ fn value<'a>(args: &mut impl Iterator<Item = &'a str>, option: &str) -> Result<&
 fn number<T: std::str::FromStr>(text: &str, option: &str) -> Result<T, String> {
     text.parse()
         .map_err(|_| format!("{option} 옵션의 값 '{text}'이(가) 올바른 숫자가 아닙니다"))
+}
+
+/// `가로x세로` 형식의 화면 밖 이미지 크기 (64~8192).
+fn size(text: &str) -> Result<(u32, u32), String> {
+    let parsed = text
+        .split_once('x')
+        .and_then(|(w, h)| Some((w.parse::<u32>().ok()?, h.parse::<u32>().ok()?)));
+    match parsed {
+        Some((w, h)) if (64..=8192).contains(&w) && (64..=8192).contains(&h) => Ok((w, h)),
+        _ => Err(format!(
+            "--offscreen-size는 64~8192 범위의 '가로x세로'여야 합니다: '{text}'"
+        )),
+    }
 }
 
 /// 명령줄 인자를 해석한다 (프로그램 이름 제외).
@@ -83,6 +99,10 @@ pub fn parse<'a>(args: impl IntoIterator<Item = &'a str>) -> Result<Options, Str
             "--db" => options.database = Some(value(&mut args, arg)?.to_owned()),
             "--auto-play" => options.auto_play = true,
             "--offscreen" => options.offscreen = true,
+            "--offscreen-size" => {
+                options.offscreen_size = Some(size(value(&mut args, arg)?)?);
+                options.offscreen = true;
+            }
             "--pause-at" => options.pause_at.push(number(value(&mut args, arg)?, arg)?),
             "--screenshot" => {
                 let at = number(value(&mut args, arg)?, arg)?;
@@ -149,5 +169,15 @@ mod tests {
         assert!(parse(["--seed", "abc"]).is_err());
         assert!(parse(["--screenshot", "1.0"]).is_err());
         assert!(parse(["--frobnicate"]).is_err());
+    }
+
+    #[test]
+    fn offscreen_size_is_parsed_and_validated() {
+        let options = parse(["--offscreen-size", "2880x1800"]).unwrap_or_default();
+        assert!(options.offscreen);
+        assert_eq!(options.offscreen_size, Some((2880, 1800)));
+        assert!(parse(["--offscreen-size", "10x10"]).is_err());
+        assert!(parse(["--offscreen-size", "2880"]).is_err());
+        assert!(parse(["--offscreen-size", "axb"]).is_err());
     }
 }

@@ -21,6 +21,17 @@
 창이 포커스 없이 열리면 플레이 진입과 함께 자동 일시정지가 걸리고, 계속하기를 누르면 이어진다.
 실제 트랙패드 핀치는 화면 제어 도구로 보낼 수 없어 손으로 하지 못했다. 대신 Bevy `PinchGesture` 입력을 넣어 확대·축소 명령이 나오고 일시정지 중에는 무시되는지 헤드리스 테스트 2개로 확인했다. 소리는 청취하지 않았다.
 
+## 2026-11-27 App Store 준비
+
+- `STORE=1 scripts/package.sh`(ad-hoc 서명)로 만든 샌드박스 앱이 Classic 모드 자동 플레이를 마쳤고, 기록 DB가
+  `~/Library/Containers/io.github.ywjung.fruitstar3d/Data/Library/Application Support/FruitStar3D/`에 생겼다.
+- 실제 빈 셰이더 캐시 첫 실행: 새 번들 ID 앱의 첫 실행에서 렌더 예열 6,634 ms, 이후 10초 플레이 평균 7.94 ms·최대 10.52 ms,
+  긴 프레임 경고 없음. 두 번째 실행 예열 244 ms.
+- `scripts/package-ios.sh store`는 iOS 27.2 SDK에서 의도대로 빌드를 거부했다. 시뮬레이터 번들에 새 번들 ID,
+  개인정보 매니페스트, `DTSDKName`·`DTXcode` 키가 들어간 것을 확인했다.
+- 스토어 스크린샷: iPhone 17 Pro Max 시뮬레이터 1320×2868 3장, 화면 밖 렌더링 2880×1800 3장(`--offscreen-size` 추가, 테스트 1개).
+- 배포 인증서가 없어 실제 배포 서명·업로드는 하지 않았다.
+
 ## 2026-11-27 iPhone 프레임률과 STAR CHANCE 선고지
 
 - iPhone 18 Pro 실기기, MEDIUM 품질, 자동 플레이(`devicectl --console`로 성능 요약 수신):

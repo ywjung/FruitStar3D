@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Mac App Store용 권한. 샌드박스만 켠다: 네트워크·파일 선택·기기 접근을 쓰지 않는다.
+     application-identifier와 team-identifier는 package.sh가 프로비저닝 프로파일에서 채운다. -->
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.app-sandbox</key><true/>
+</dict>
+</plist>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  FRUIT STAR 3D 개인정보 매니페스트 (iOS 번들 루트, macOS Contents/Resources).
+  추적 없음, 수집 데이터 없음. 실행 파일이 쓰는 "사용 이유 신고 대상 API"는
+  nm으로 확인했다 (review/APP_STORE_RELEASE.md 참고):
+    stat/fstat/lstat      → 파일 타임스탬프: 앱 컨테이너 안의 기록 DB와 리소스 (C617.1)
+    statfs/fstatfs        → 디스크 공간: SQLite가 쓰기 전에 파일 시스템 정보를 확인 (E174.1)
+    mach_absolute_time    → 부팅 후 시간: 프레임·애니메이션 경과 시간 측정 (35F9.1)
+-->
+<plist version="1.0">
+<dict>
+    <key>NSPrivacyTracking</key><false/>
+    <key>NSPrivacyTrackingDomains</key><array/>
+    <key>NSPrivacyCollectedDataTypes</key><array/>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key><string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key><array><string>C617.1</string></array>
+        </dict>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key><string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key><array><string>E174.1</string></array>
+        </dict>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key><string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key><array><string>35F9.1</string></array>
+        </dict>
+    </array>
+</dict>
+</plist>

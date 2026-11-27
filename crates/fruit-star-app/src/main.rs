@@ -116,7 +116,13 @@ fn main() -> ExitCode {
     ))
     .add_systems(Startup, log_startup);
     if options.offscreen {
-        app.add_systems(PreStartup, create_offscreen_target);
+        let (width, height) = options.offscreen_size.unwrap_or((1920, 1080));
+        app.add_systems(
+            PreStartup,
+            move |commands: Commands, images: ResMut<Assets<Image>>| {
+                create_offscreen_target(commands, images, width, height);
+            },
+        );
     }
     if options.offscreen || options.auto_play {
         // 사람이 보지 않는 자동 실행은 처음부터 창 포커스가 없다.
@@ -140,8 +146,13 @@ fn log_startup(warnings: Res<StartupWarnings>, settings: Res<Settings>) {
 }
 
 /// 화면 밖 렌더링 대상을 만든다 (`--offscreen`).
-fn create_offscreen_target(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
+fn create_offscreen_target(
+    mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
+    width: u32,
+    height: u32,
+) {
     use bevy::render::render_resource::TextureFormat;
-    let image = Image::new_target_texture(1920, 1080, TextureFormat::Rgba8UnormSrgb, None);
+    let image = Image::new_target_texture(width, height, TextureFormat::Rgba8UnormSrgb, None);
     commands.insert_resource(fruit_star_machine::OffscreenTarget(images.add(image)));
 }

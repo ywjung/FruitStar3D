@@ -81,6 +81,9 @@ pub struct RenderSection {
     pub quality: Quality,
     /// 목표 프레임률. 이 값을 넘지 않도록 제한한다.
     pub target_fps: u32,
+    /// 기기 열 상태가 "높음" 이상일 때의 목표 프레임률. `target_fps`보다 크면 `target_fps`를 쓴다.
+    /// 열 상태는 iOS에서만 읽으므로 다른 플랫폼에서는 쓰이지 않는다.
+    pub hot_target_fps: u32,
     pub bloom: bool,
     pub shadows: bool,
     pub ambient_occlusion: bool,
@@ -97,6 +100,7 @@ impl Default for RenderSection {
             backend: "metal".to_owned(),
             quality: Quality::High,
             target_fps: 120,
+            hot_target_fps: 30,
             bloom: true,
             shadows: true,
             ambient_occlusion: true,
@@ -161,6 +165,13 @@ impl GraphicsConfig {
             ));
         }
         check_range(FILE, "render.target_fps", self.render.target_fps, 30, 240)?;
+        check_range(
+            FILE,
+            "render.hot_target_fps",
+            self.render.hot_target_fps,
+            30,
+            240,
+        )?;
         check_range(
             FILE,
             "render.render_scale",

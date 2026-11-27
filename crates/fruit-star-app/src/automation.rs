@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 
 use bevy::app::AppExit;
+use bevy::ecs::system::NonSendMarker;
 use bevy::prelude::*;
 use bevy::render::view::screenshot::{Screenshot, save_to_disk};
 use fruit_star_game::{Phase, PlayMode};
@@ -12,6 +13,7 @@ use fruit_star_machine::{
 };
 
 use crate::cli::Options;
+use crate::device::{self, DeviceTally, report};
 
 /// 명령줄 옵션에서 온 자동화 설정.
 #[derive(Resource, Debug, Clone, Default)]
@@ -29,6 +31,13 @@ pub struct Automation {
     frames: u32,
     frame_sum: f32,
     frame_max: f32,
+    /// 측정 구간의 기기 열 상태·배터리 (iOS만). 1초마다 읽는다.
+    device: DeviceTally,
+    device_at: Option<f32>,
+    /// 중간 보고를 낼 다음 시각 (초). 실행이 도중에 끊겨도 그때까지의 값이 남게 한다.
+    next_report: f32,
+    /// `--exit-after`로 종료를 요청한 시각 (초).
+    exited_at: Option<f32>,
 }
 
 impl Automation {
@@ -47,7 +56,30 @@ impl Automation {
             frames: 0,
             frame_sum: 0.0,
             frame_max: 0.0,
+            device: DeviceTally::default(),
+            device_at: None,
+            next_report: REPORT_EVERY,
+            exited_at: None,
         }
+    }
+}
+
+/// 중간 보고 간격 (초).
+const REPORT_EVERY: f32 = 60.0;
+
+impl Automation {
+    /// 지금까지의 프레임 시간 요약. 집계한 프레임이 없으면 `None`.
+    fn perf_summary(&self) -> Option<String> {
+        (self.frames > 0).then(|| {
+            let average = self.frame_sum / self.frames as f32;
+            format!(
+                "{} 프레임, 평균 {:.2} ms ({:.1} FPS), 최대 {:.2} ms",
+                self.frames,
+                average * 1000.0,
+                1.0 / average,
+                self.frame_max * 1000.0
+            )
+        })
     }
 }
 
@@ -55,15 +87,42 @@ pub struct AutomationPlugin;
 
 impl Plugin for AutomationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::MainMenu), auto_start)
-            .add_systems(Update, auto_play.in_set(MachineSet::Input))
-            .add_systems(Update, scheduled_actions);
+        app.add_systems(
+            OnEnter(AppState::MainMenu),
+            (auto_start, keep_screen_on_for_auto_play),
+        )
+        .add_systems(Update, auto_play.in_set(MachineSet::Input))
+        .add_systems(Update, scheduled_actions);
+        #[cfg(target_os = "ios")]
+        app.add_systems(
+            Last,
+            end_process_after_exit.after(crate::persistence::close_on_exit),
+        );
+    }
+}
+
+/// iOS에서는 winit이 종료 요청을 무시하고(`ControlFlow::Exit ignored on iOS`), 종료를 요청한 뒤로는
+/// Bevy도 프레임을 더 돌리지 않는다. 그대로 두면 앱이 화면을 켠 채 남으므로, 자동화가 종료를 요청한
+/// 그 프레임의 마지막(열린 세션을 닫은 뒤)에 프로세스를 끝낸다. `--exit-after`로만 오는 경로이며,
+/// 일반 플레이에는 종료 단추가 없다.
+#[cfg(target_os = "ios")]
+fn end_process_after_exit(automation: Res<Automation>) {
+    if automation.exited_at.is_some() {
+        std::process::exit(0);
     }
 }
 
 fn auto_start(mut automation: ResMut<Automation>, mut sessions: MessageWriter<SessionCommand>) {
     if let Some((mode, view)) = automation.start.take() {
         sessions.write(SessionCommand::Start { mode, view });
+    }
+}
+
+/// 자동 플레이는 화면을 만지지 않으므로, 측정 중 화면이 꺼져 앱이 멈추지 않게 자동 잠금을 끈다.
+/// 일반 플레이의 화면 잠금 동작은 바꾸지 않는다. 메인 스레드에서 돌도록 `NonSendMarker`를 받는다.
+fn keep_screen_on_for_auto_play(_main_thread: NonSendMarker, automation: Res<Automation>) {
+    if automation.auto_play {
+        device::keep_screen_on(true);
     }
 }
 
@@ -105,7 +164,9 @@ fn auto_play(
     }
 }
 
+/// 기기 상태를 읽는 iOS API는 메인 스레드에서만 부를 수 있어 `NonSendMarker`를 받는다.
 fn scheduled_actions(
+    _main_thread: NonSendMarker,
     mut commands: Commands,
     time: Res<Time<Real>>,
     state: Res<State<AppState>>,
@@ -121,13 +182,35 @@ fn scheduled_actions(
     let delta = time.delta_secs();
     automation.elapsed += delta;
     let now = automation.elapsed;
+    if automation.exited_at.is_some() {
+        return;
+    }
     if delta > 0.25 {
-        warn!("긴 프레임: {:.0} ms (시작 후 {:.2}초)", delta * 1000.0, now);
+        let line = format!("긴 프레임: {:.0} ms (시작 후 {:.2}초)", delta * 1000.0, now);
+        warn!("{line}");
+        #[cfg(target_os = "ios")]
+        eprintln!("{line}");
     }
     if now > 2.0 {
         automation.frames += 1;
         automation.frame_sum += delta;
         automation.frame_max = automation.frame_max.max(delta);
+        let since = automation.device_at.map_or(now - 2.0, |at| now - at);
+        if automation.device_at.is_none() || since >= 1.0 {
+            if let Some(sample) = device::read() {
+                automation.device.record(sample, since);
+            }
+            automation.device_at = Some(now);
+        }
+        if now >= automation.next_report {
+            automation.next_report += REPORT_EVERY;
+            if let Some(perf) = automation.perf_summary() {
+                report(&format!("중간 측정 ({now:.0}초): {perf}"));
+            }
+            if let Some(device) = automation.device.summary() {
+                report(&format!("중간 측정 ({now:.0}초): {device}"));
+            }
+        }
     }
 
     let (due, pending): (Vec<_>, Vec<_>) = automation
@@ -157,19 +240,12 @@ fn scheduled_actions(
 
     if automation.exit_after.is_some_and(|limit| now >= limit) {
         automation.exit_after = None;
-        if automation.frames > 0 {
-            let average = automation.frame_sum / automation.frames as f32;
-            let summary = format!(
-                "성능 측정: {} 프레임, 평균 {:.2} ms ({:.1} FPS), 최대 {:.2} ms",
-                automation.frames,
-                average * 1000.0,
-                1.0 / average,
-                automation.frame_max * 1000.0
-            );
-            info!("{summary}");
-            // iOS의 로그는 시스템 로그로만 가므로, `devicectl --console`로 받을 수 있게 표준 오류에도 쓴다.
-            #[cfg(target_os = "ios")]
-            eprintln!("{summary}");
+        automation.exited_at = Some(now);
+        if let Some(perf) = automation.perf_summary() {
+            report(&format!("성능 측정: {perf}"));
+        }
+        if let Some(device) = automation.device.summary() {
+            report(&device);
         }
         exit.write(AppExit::Success);
     }

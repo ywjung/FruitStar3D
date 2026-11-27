@@ -4,6 +4,7 @@
 backend = "metal"           # macOS 빌드는 metal만 지원
 quality = "high"            # low | medium | high | ultra
 target_fps = 120            # 30 ~ 240, 이 값을 넘지 않도록 제한
+hot_target_fps = 30         # 30 ~ 240, 기기 열 상태가 "높음" 이상일 때의 목표 (iOS만 열 상태를 읽는다)
 bloom = true
 shadows = true
 ambient_occlusion = true

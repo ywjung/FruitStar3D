@@ -374,7 +374,7 @@ fn end_session(
 }
 
 /// 프로그램이 끝날 때 열린 세션을 정상 종료로 닫는다.
-fn close_on_exit(
+pub(crate) fn close_on_exit(
     mut exits: MessageReader<AppExit>,
     mut persistence: ResMut<Persistence>,
     machine: Res<Machine>,

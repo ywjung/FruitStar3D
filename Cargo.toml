@@ -38,6 +38,10 @@ serde = { version = "1", features = ["derive"] }
 toml = "1.2"
 thiserror = "2"
 criterion = "0.8"
+# iOS 기기 상태(열·배터리)와 화면 잠금. 안전한(safe) 메서드만 쓴다.
+objc2 = { version = "0.6", default-features = false, features = ["std"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSProcessInfo"] }
+objc2-ui-kit = { version = "0.3", default-features = false, features = ["std", "UIApplication", "UIDevice", "UIResponder"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

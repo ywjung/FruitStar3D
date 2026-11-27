@@ -4,6 +4,7 @@
 
 mod automation;
 mod cli;
+mod device;
 mod paths;
 mod persistence;
 mod window;

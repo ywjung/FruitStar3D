@@ -6,6 +6,9 @@
 backend = "metal"
 quality = "medium"          # 릴 띠 텍스처 512px, 그림자 2048
 target_fps = 60
+# 기기 열 상태가 "높음"(Serious) 이상이면 30 FPS로 낮추고, "약간 높음" 이하로 내려오면 되돌린다.
+# 11월 28일 10분 자동 플레이(충전 중)에서 약 8분 40초에 "높음"이 되었다.
+hot_target_fps = 30
 bloom = false
 shadows = true
 ambient_occlusion = false

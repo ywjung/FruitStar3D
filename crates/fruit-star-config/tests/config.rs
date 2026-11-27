@@ -87,7 +87,28 @@ fn shipped_ios_graphics_file_is_valid() {
     assert!(report.warnings.is_empty(), "{:?}", report.warnings);
     let render = &report.config.graphics.render;
     assert!(render.target_fps <= 60);
+    assert!(
+        render.hot_target_fps < render.target_fps,
+        "뜨거울 때의 목표가 평소보다 낮아야 열을 줄인다"
+    );
     assert!(!render.ambient_occlusion && !render.motion_blur);
+}
+
+#[test]
+fn hot_target_fps_out_of_range_is_rejected() {
+    for bad in ["10", "300"] {
+        let dir = temp_dir(&format!("hot_fps_{bad}"));
+        std::fs::write(
+            dir.join("graphics.toml"),
+            format!("[render]\nhot_target_fps = {bad}\n"),
+        )
+        .unwrap();
+        let message = ConfigSet::load(&dir, Recovery::Strict)
+            .unwrap_err()
+            .to_string();
+        assert!(message.contains("hot_target_fps"), "{message}");
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 }
 
 #[test]

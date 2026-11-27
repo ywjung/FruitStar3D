@@ -133,6 +133,7 @@
 |---|---|---|
 | `render.backend` | `"metal"`만 | 검증만 한다. 렌더러 설정에 전달하지 않는다 |
 | `render.target_fps` | 30 ~ 240 | 프레임 끝에서 대기해 상한을 건다. vsync가 켜져 있고 모니터 주사율이 목표 이하이면 대기하지 않는다 |
+| `render.hot_target_fps` | 30 ~ 240 | 기기 열 상태(`NSProcessInfo.thermalState`, 2초마다 읽음)가 "높음"(Serious) 이상인 동안의 목표. `target_fps`보다 크면 `target_fps`를 쓴다. "약간 높음" 이하로 내려오면 평소 목표로 돌아간다. 열 상태는 iOS에서만 읽으므로 macOS에서는 효과가 없다 |
 | `render.bloom`, `ambient_occlusion`, `motion_blur` | bool | 시작 시 카메라에 해당 컴포넌트를 붙일지 결정 |
 | `render.shadows` | bool | 주광의 그림자 맵 사용 여부 (시작 시) |
 | `render.render_scale` | 0.25 ~ 2.0 | **반영되지 않는다** (아래 6절) |

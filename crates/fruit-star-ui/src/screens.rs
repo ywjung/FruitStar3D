@@ -407,6 +407,8 @@ pub(crate) fn spawn_screens(
             root.spawn((
                 Node {
                     width: px(540),
+                    // 휴대폰 세로 화면은 540보다 좁다.
+                    max_width: percent(92),
                     padding: UiRect::all(px(24)),
                     ..column(16.0)
                 },
@@ -415,7 +417,10 @@ pub(crate) fn spawn_screens(
             .with_children(|p| {
                 caption(p, "failed.title", 28.0, RED);
                 value(p, Dynamic::Failure, 17.0, INK);
-                button(p, "menu.quit", UiAction::Quit, Finish::Enamel);
+                // iOS 앱은 스스로 종료하지 않으므로 종료 단추를 두지 않는다 (메인 메뉴와 같다).
+                if !touch.0 {
+                    button(p, "menu.quit", UiAction::Quit, Finish::Enamel);
+                }
             });
         });
     menu(&mut commands, image, &settings.config.machine.name, touch.0);

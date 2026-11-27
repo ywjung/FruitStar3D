@@ -39,7 +39,14 @@ iOS와 macOS를 한 앱 레코드에 넣어 같은 번들 ID로 낸다(유니버
 | 프로파일 "FRUIT STAR 3D iOS App Store", "FRUIT STAR 3D Mac App Store" | 만들어 Xcode로 내려받음 (`~/Library/Developer/Xcode/UserData/Provisioning Profiles/`) |
 | App Store Connect 앱 레코드 (Apple ID 6839970897, SKU fruitstar3d, iOS·macOS, 한국어) | 만듦. 두 플랫폼 1.0 "제출 준비 중" |
 | Mac App Store 패키지 `dist/store/FruitStar3D-macOS.pkg` (1.0, 빌드 1) | 배포 인증서로 서명함. 앱 아이콘을 icns와 에셋 카탈로그(`Assets.car`, `CFBundleIconName`) 둘 다로 넣음. 2026-11-27 20:01 Xcode 계정으로 업로드 성공(`xcodebuild -exportArchive`, destination upload), 처리 완료(약 10분, "제출 준비 완료"). macOS 1.0 버전에 빌드 1을 연결해 저장했고, 앱 목록·버전 화면에 앱 아이콘이 표시됨. 심사 제출은 하지 않음 |
-| iOS `.ipa` | Xcode 26 설치 전이라 만들지 않음 |
+| iOS `.ipa` | Xcode 26 설치 전이라 만들지 않음. 그래서 App Store Connect의 iOS 1.0에는 빌드와 아이콘이 없음 |
+| 앱 정보 (2026-11-27 입력) | 부제 "3D 기계식 과일 릴 게임기", 카테고리 게임 › 카지노·시뮬레이션, 콘텐츠 권한 "타사 콘텐츠 없음" |
+| 연령 등급 | 시뮬레이션 도박 "빈번", 나머지 없음/아니요 → 계산 결과 18+ (일부 지역 R 18+). 대한민국은 조건에 따라 GRAC 등급분류번호 필요 |
+| 가격·판매 지역 | 무료 ($0.00). 판매 지역 131개 국가·지역 — 대한민국(GRAC 등급분류번호 필요 가능), 중국 본토(게임 판호 필요), 유럽 42개국(사용자 요청) 제외 |
+| 개인정보 | 처리방침 URL 입력, "데이터를 수집하지 않음" 게시함 (사용자 승인) |
+| iOS·macOS 1.0 버전 문구 | 한국어 홍보 문구·설명·키워드·지원 URL·저작권·심사 메모 입력. macOS 심사 연락처 저장, "로그인 필요" 해제, 스크린샷 3장(2880×1800) Chrome으로 업로드 |
+| **macOS 1.0 심사 제출** | 2026-11-27 20:45 제출. 상태 "심사 대기 중" (최대 48시간, 결과는 계정 이메일로 옴) |
+| iOS 1.0 | 빌드 없음(Xcode 26 필요) — "제출 준비 중"에 머묾 |
 
 ## 3. 직접 해야 하는 일 (계정·서명·제출)
 

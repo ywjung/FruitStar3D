@@ -90,13 +90,24 @@ cat > "$ICONSET/Contents.json" <<'JSON'
   "info": { "author": "xcode", "version": 1 }
 }
 JSON
-# Xcode 26의 actool은 같은 버전의 시뮬레이터 런타임이 없으면 실패한다. ACTOOL_DEVELOPER_DIR로
-# 다른 Xcode의 actool을 쓸 수 있다 (예: 기본 Xcode). 결과물은 MIN_IOS 기준이라 호환된다.
+# actool은 SDK와 같은 버전의 iOS 시뮬레이터 런타임이 있어야 한다. 없으면
+# `xcodebuild -downloadPlatform iOS -buildVersion <SDK 버전>`으로 받는다.
+# 개발용 빌드에서만 ACTOOL_DEVELOPER_DIR로 다른 Xcode의 actool을 쓸 수 있다. 스토어 빌드는
+# 실행 파일·Info.plist의 DT* 값과 같은 Xcode로 에셋까지 만들어 도구가 섞이지 않게 한다.
+if [ "$KIND" = store ] && [ -n "${ACTOOL_DEVELOPER_DIR:-}" ]; then
+    echo "App Store용 빌드는 에셋도 같은 Xcode로 컴파일해야 합니다 (ACTOOL_DEVELOPER_DIR를 지우세요)." >&2
+    exit 1
+fi
 DEVELOPER_DIR="${ACTOOL_DEVELOPER_DIR:-${DEVELOPER_DIR:-$(xcode-select -p)}}" \
 xcrun actool "$WORK/Assets.xcassets" --compile "$APP" --platform "$SDK" \
     --minimum-deployment-target "$MIN_IOS" --target-device iphone \
     --app-icon AppIcon --output-partial-info-plist "$WORK/icon.plist" >/dev/null
 
+# DT* 키는 Xcode가 앱에 쓰는 것과 같은 값·같은 키 집합이어야 한다. App Store Connect는 이 값으로
+# 빌드한 Xcode·SDK가 지원 버전인지 확인하며, DTPlatformBuild가 빠진 빌드 1·2는 제출 직후
+# ITMS-90111(Unsupported SDK or Xcode version)로 "잘못된 바이너리"가 됐다 (2026-11-27).
+PLATFORM_BUILD="$(/usr/libexec/PlistBuddy -c 'Print :ProductBuildVersion' \
+    "$(xcrun --sdk "$SDK" --show-sdk-platform-path)/version.plist")"
 cat > "$APP/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -125,6 +136,7 @@ cat > "$APP/Info.plist" <<PLIST
     <key>UIRequiredDeviceCapabilities</key><array><string>arm64</string><string>metal</string></array>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
     <key>DTPlatformName</key><string>$SDK</string>
+    <key>DTPlatformBuild</key><string>$PLATFORM_BUILD</string>
     <key>DTPlatformVersion</key><string>$SDK_VERSION</string>
     <key>DTSDKName</key><string>$SDK$SDK_VERSION</string>
     <key>DTSDKBuild</key><string>$(xcrun --sdk "$SDK" --show-sdk-build-version)</string>

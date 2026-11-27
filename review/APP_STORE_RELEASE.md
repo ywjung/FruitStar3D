@@ -46,7 +46,10 @@ iOS와 macOS를 한 앱 레코드에 넣어 같은 번들 ID로 낸다(유니버
 | 개인정보 | 처리방침 URL 입력, "데이터를 수집하지 않음" 게시함 (사용자 승인) |
 | iOS·macOS 1.0 버전 문구 | 한국어 홍보 문구·설명·키워드·지원 URL·저작권·심사 메모 입력. macOS 심사 연락처 저장, "로그인 필요" 해제, 스크린샷 3장(2880×1800) Chrome으로 업로드 |
 | **macOS 1.0 심사 제출** | 2026-11-27 20:45 제출. 상태 "심사 대기 중" (최대 48시간, 결과는 계정 이메일로 옴) |
-| **iOS 1.0 심사 제출** | 스크린샷 3장(6.3형 1206×2622, `store/screenshots/iphone-6.3/`), 심사 연락처, "로그인 필요" 해제, 빌드 1.0 (1) 연결 후 2026-11-27 21:04 제출. 상태 "심사 대기 중" |
+| iOS 1.0 첫 제출 (빌드 1) | 스크린샷 3장(6.3형 1206×2622, `store/screenshots/iphone-6.3/`), 심사 연락처, "로그인 필요" 해제, 빌드 1.0 (1) 연결 후 2026-11-27 21:04 제출. 3분 뒤 자동 검사에서 "잘못된 바이너리"(제출 상태 "해결되지 않은 문제"). App Store Connect에는 이유가 표시되지 않음(계정 이메일로 옴, 미확인) |
+| 빌드 2 (도구 통일, 원인 아님) | 빌드 1은 `Assets.car`만 Xcode 27.2 actool로 만들어 도구가 섞여 있었다. iOS 26.5 시뮬레이터 런타임(23F73)을 받고 `simctl runtime match set iphoneos26.5 23F73`으로 Xcode 26 actool이 쓰게 해 모두 Xcode 26.6으로 만든 빌드 2를 21:36에 다시 제출했으나 같은 이유로 거절됨 |
+| **실제 원인: ITMS-90111** | Apple 메일: "Unsupported SDK or Xcode version - App submissions must use the latest Xcode and SDK Release Candidates". 두 Xcode 모두 정식(GM) 라이선스였다. Xcode가 만든 다른 iOS 앱(OnEum, S2B)과 비교하니 손으로 쓴 Info.plist에 `DTPlatformBuild`만 빠져 있었고, 나머지 DT 값은 Xcode 26.6 빌드 설정(`xcodebuild -showBuildSettings`)과 같았다. `package-ios.sh`가 플랫폼 `version.plist`의 `ProductBuildVersion`(23F81a)을 `DTPlatformBuild`로 쓰게 고쳐 빌드 3을 21:44에 업로드 |
+| **iOS 1.0 재제출 (빌드 3)** | 2026-11-27 21:49 제출. 빌드 1·2는 제출 3분 안에 거절됐는데, 빌드 3은 6분 뒤(21:55)에도 "심사 대기 중". 최종 결과는 Apple 심사 뒤에 나온다 |
 
 ## 3. 직접 해야 하는 일 (계정·서명·제출)
 

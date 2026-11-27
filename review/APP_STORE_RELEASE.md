@@ -30,6 +30,17 @@ iOS와 macOS를 한 앱 레코드에 넣어 같은 번들 ID로 낸다(유니버
 해결: Xcode 26을 추가 설치해 iOS 26 SDK로 빌드한다 (Apple이 iOS 27 SDK를 의무화하기 전까지 유효).
 그 뒤로는 winit의 UIScene 지원(0.31 계열, 현재 베타)과 Bevy 업그레이드가 필요하다.
 
+## 2-1. 계정 작업 진행 상황 (2026-11-27)
+
+| 항목 | 상태 |
+|---|---|
+| App ID `io.github.ywjung.fruitstar3d` (팀 6C6BHG2XX3) | 등록함 |
+| 인증서 Apple Distribution, 3rd Party Mac Developer Installer | Xcode에서 만들어 키체인에 있음 (2027-11-27 만료) |
+| 프로파일 "FRUIT STAR 3D iOS App Store", "FRUIT STAR 3D Mac App Store" | 만들어 Xcode로 내려받음 (`~/Library/Developer/Xcode/UserData/Provisioning Profiles/`) |
+| App Store Connect 앱 레코드 (Apple ID 6839970897, SKU fruitstar3d, iOS·macOS, 한국어) | 만듦. 두 플랫폼 1.0 "제출 준비 중" |
+| Mac App Store 패키지 `dist/store/FruitStar3D-macOS.pkg` (1.0, 빌드 1) | 배포 인증서로 서명함. 앱 아이콘을 icns와 에셋 카탈로그(`Assets.car`, `CFBundleIconName`) 둘 다로 넣음. 2026-11-27 20:01 Xcode 계정으로 업로드 성공(`xcodebuild -exportArchive`, destination upload), 처리 완료(약 10분, "제출 준비 완료"). macOS 1.0 버전에 빌드 1을 연결해 저장했고, 앱 목록·버전 화면에 앱 아이콘이 표시됨. 심사 제출은 하지 않음 |
+| iOS `.ipa` | Xcode 26 설치 전이라 만들지 않음 |
+
 ## 3. 직접 해야 하는 일 (계정·서명·제출)
 
 1. **Xcode 26 설치**: developer.apple.com › Downloads에서 받아 `/Applications/Xcode-26.app`처럼 이름을 바꿔 함께 둔다.
@@ -44,14 +55,17 @@ iOS와 macOS를 한 앱 레코드에 넣어 같은 번들 ID로 낸다(유니버
 9. **빌드 만들기·업로드**:
 
 ```bash
-DEVELOPER_DIR=/Applications/Xcode-26.app/Contents/Developer BUILD_NUMBER=1 SIGN_IDENTITY="Apple Distribution: …" PROFILE_PATH=<iOS 배포 프로파일> scripts/package-ios.sh store
+DEVELOPER_DIR=/Applications/Xcode-26.app/Contents/Developer MARKETING_VERSION=1.0 BUILD_NUMBER=1 SIGN_IDENTITY="Apple Distribution: …" PROFILE_PATH=<iOS 배포 프로파일> scripts/package-ios.sh store
 ```
 
 ```bash
-STORE=1 BUILD_NUMBER=1 SIGN_IDENTITY="Apple Distribution: …" INSTALLER_IDENTITY="3rd Party Mac Developer Installer: …" PROFILE_PATH=<Mac 배포 프로파일> scripts/package.sh
+STORE=1 MARKETING_VERSION=1.0 BUILD_NUMBER=1 SIGN_IDENTITY="Apple Distribution: …" INSTALLER_IDENTITY="3rd Party Mac Developer Installer: …" PROFILE_PATH=<Mac 배포 프로파일> scripts/package.sh
 ```
 
    만든 `dist/ios-store/FruitStar3D.ipa`와 `dist/store/FruitStar3D-macOS.pkg`를 Transporter 앱으로 올린다.
+   Transporter 없이 Xcode에 로그인된 계정으로 올릴 수도 있다: 서명된 앱을 `.xcarchive`(Products/Applications + Info.plist)로
+   묶고 `xcodebuild -exportArchive -exportOptionsPlist <method app-store-connect, destination upload> -allowProvisioningUpdates`.
+   2026-11-27 macOS 1.0 (1)은 이 방법으로 올렸다 (`dist/store/ExportOptions.plist`).
 10. **TestFlight**로 실기기에서 한 번 더 확인한 뒤 심사 제출. 심사 메모는 `store/metadata.md` 마지막 절.
 
 ## 4. 연령 등급 설문 답변 (예상)

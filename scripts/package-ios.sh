@@ -33,6 +33,8 @@ APP="$OUT/FruitStar3D.app"
 VERSION="$(cargo metadata --format-version 1 --no-deps |
     python3 -I -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="fruit-star-app"))')"
 
+# App Store Connect의 버전 문자열(예: 1.0)과 같아야 한다. 기본값은 Cargo 버전.
+VERSION="${MARKETING_VERSION:-$VERSION}"
 BUILD_NUMBER="${BUILD_NUMBER:-$VERSION}"
 
 if [ "$KIND" != sim ]; then

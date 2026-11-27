@@ -21,6 +21,8 @@ BUNDLE_ID="${BUNDLE_ID:-io.github.ywjung.fruitstar3d}"
 VERSION="$(cargo metadata --format-version 1 --no-deps |
     python3 -I -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"]=="fruit-star-app"))')"
 TARGET="aarch64-apple-darwin"
+# App Store Connect의 버전 문자열(예: 1.0)과 같아야 한다. 기본값은 Cargo 버전.
+VERSION="${MARKETING_VERSION:-$VERSION}"
 BUILD_NUMBER="${BUILD_NUMBER:-$VERSION}"
 DIST="dist"
 [ "$STORE" = 1 ] && DIST="dist/store"
@@ -38,8 +40,25 @@ rm -rf "$APP" "$DIST/FruitStar3D-macOS-arm64.dmg" "$DIST/FruitStar3D-macOS-arm64
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "target/$TARGET/release/fruit-star-app" "$APP/Contents/MacOS/FruitStar3D"
 cp -R assets config "$APP/Contents/Resources/"
-# 앱 아이콘: 에셋 생성기가 만든 iconset을 icns로 묶는다.
+# 앱 아이콘: 에셋 생성기가 만든 iconset을 icns로 묶고, App Store가 읽는 에셋 카탈로그(Assets.car)도 만든다.
 iconutil -c icns assets/icons/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
+ICON_WORK="$(mktemp -d)"
+ICONSET="$ICON_WORK/Assets.xcassets/AppIcon.appiconset"
+mkdir -p "$ICONSET"
+cp assets/icons/AppIcon.iconset/*.png "$ICONSET/"
+python3 -I - "$ICONSET" <<'PY'
+import json, sys
+images = []
+for size in (16, 32, 128, 256, 512):
+    for scale in (1, 2):
+        name = f"icon_{size}x{size}{'@2x' if scale == 2 else ''}.png"
+        images.append({"filename": name, "idiom": "mac", "scale": f"{scale}x", "size": f"{size}x{size}"})
+json.dump({"images": images, "info": {"author": "xcode", "version": 1}}, open(sys.argv[1] + "/Contents.json", "w"), indent=1)
+PY
+echo '{ "info": { "author": "xcode", "version": 1 } }' > "$ICON_WORK/Assets.xcassets/Contents.json"
+xcrun actool "$ICON_WORK/Assets.xcassets" --compile "$APP/Contents/Resources" --platform macosx \
+    --minimum-deployment-target 13.0 --app-icon AppIcon \
+    --output-partial-info-plist "$ICON_WORK/icon.plist" >/dev/null
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -62,6 +81,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+/usr/libexec/PlistBuddy -c "Merge $ICON_WORK/icon.plist" "$APP/Contents/Info.plist" >/dev/null
+rm -rf "$ICON_WORK"
+plutil -lint "$APP/Contents/Info.plist" >/dev/null
 
 if [ "$STORE" = 1 ]; then
     cp packaging/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivacy"

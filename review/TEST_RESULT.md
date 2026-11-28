@@ -19,6 +19,20 @@
 - 새 개발 빌드를 iPhone에 설치했으나 실기기 화면은 보지 않았다.
 - iPhone 18 Pro Max 시뮬레이터(440×956pt)에서도 같은 배치로 위쪽 계수기부터 정지 버튼까지 두 막대 사이에 들어왔다.
   [18 Pro Max](screenshots/iphone_promax_hud.png). 더 작은 기기(SE 등)는 시뮬레이터가 없어 보지 않았다.
+- iPhone 18 Pro 실기기: 사용자가 잠금을 푼 뒤 같은 개발 빌드(스토어 빌드 4와 같은 코드)로 자동 플레이를 띄우고
+  `devicectl device capture screenshot`으로 화면을 받았다. 시뮬레이터와 같은 배치로 위쪽 계수기부터 정지 버튼까지
+  두 막대 사이에 가리지 않고 들어왔다. [실기기](screenshots/iphone_device_hud.png).
+- 같은 실행(20분 예정, 07:56:46 시작, 전원 연결)은 240초까지 평균 59.8 FPS·열 상태 정상이었고, 그 뒤 콘솔 연결이
+  끊겼다("The connection was invalidated", CoreDevice error 3). `devicectl`은 08:14:25에 종료 코드 1로 끝났고, 그때
+  앱은 기기에서 아직 실행 중이었으며 기기는 잠겨 있었다. 남은 앱은 `devicectl device process terminate`로 끝냈다.
+  기기 로그 수집(`log collect --device-udid`)은 root 권한이 필요해 하지 못했다. 그래서 발열 대응의 60 FPS 복귀(#37)와
+  `--exit-after` 종료(#38)는 이번에도 실기기에서 확인하지 못했다.
+- 다시 돌린 20분 실행(08:16:08 시작, 전원 연결): 약 271초에 "높음" → 60 → 30 FPS, 약 420초에 "약간 높음" → 30 → 60 FPS,
+  약 35초 뒤 다시 "높음" → 30 FPS. 발열 대응의 낮추기·되돌리기를 실기기에서 확인했다(#37). 08:33:55(약 17분 47초)에
+  앱이 SIGKILL로 끝나 `--exit-after 1200` 종료는 이번에도 확인하지 못했다(#39). 크래시·jetsam 보고서 없음.
+- 1분 종료 확인(08:53:38 시작, `--exit-after 60`): 성능 측정 3,481 프레임 평균 16.67 ms(60.0 FPS)·최대 21.20 ms,
+  기기 상태 줄 출력 뒤 "The app terminated with the exit code 0."(`devicectl` 종료 코드 0, 63초). 기기에 앱이 남지 않았다.
+  iOS `--exit-after` 종료(#38)를 실기기에서 확인했다.
 
 ## 2026-11-28 iPhone 10분 실행과 발열 대응
 
